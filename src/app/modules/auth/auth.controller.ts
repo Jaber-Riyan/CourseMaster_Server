@@ -5,16 +5,16 @@ import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status-codes"
 
 const credentialsLogin = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const loginInfo = await AuthServices.credentialsLogin(req.body)
+    const loginInfo = await AuthServices.credentialsLogin(req.body, res as Response)
 
     sendResponse(res, {
         success: true,
         statusCode: httpStatus.OK,
         message: "User Logged In Successfully",
         data: {
-            accessToken: userTokens.accessToken,
-            refreshToken: userTokens.refreshToken,
-            user: rest
+            accessToken: loginInfo.userTokens.accessToken,
+            refreshToken: loginInfo.userTokens.refreshToken,
+            user: loginInfo.rest
         },
     })
 })

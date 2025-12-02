@@ -3,8 +3,11 @@ import AppError from "../../errorHelpers/AppError";
 import type { IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
 import httpStatus from "http-status-codes"
+import { createUserTokens } from "../../utils/userTokes";
+import { setAuthCookie } from "../../utils/setCookie";
+import type { Response } from "express";
 
-const credentialsLogin = async (payload: Partial<IUser>) => {
+const credentialsLogin = async (payload: Partial<IUser>, res:Response) => {
     const { email, password } = payload
 
     const isUserExist = await User.findOne({ email })
@@ -19,7 +22,16 @@ const credentialsLogin = async (payload: Partial<IUser>) => {
         throw new AppError(httpStatus.BAD_REQUEST, "Incorrect Password")
     }
 
-    
+    const userTokens = createUserTokens(isUserExist)
+
+    const { password: pass, ...rest } = isUserExist.toObject()
+
+    setAuthCookie(res, userTokens)
+
+    return {
+        userTokens,
+        rest
+    }
 }
 export const AuthServices = {
     credentialsLogin
