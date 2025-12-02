@@ -23,10 +23,15 @@ app.use(express.json())
 app.set("trust proxy", 1)
 app.use(express.urlencoded({ extended: true }))
 app.use(morgan("dev"))
+// app.use(cors({
+//     origin: [envVars.FRONTEND_URL, envVars.FRONTEND_PRODUCTION_URL],
+//     credentials: true
+// }))
 app.use(cors({
-    origin: envVars.FRONTEND_URL,
-    credentials: true
+  origin: true,
+  credentials: true
 }))
+
 
 app.use("/api/v1", router)
 
@@ -40,3 +45,19 @@ app.get("/", async (req: Request, res: Response) => {
 app.use(globalErrorHandler)
 
 app.use(notFound)
+
+// {
+//   "version": 2,
+//   "builds": [
+//     {
+//       "src": "dist/server.js",
+//       "use": "@vercel/node"
+//     }
+//   ],
+//   "routes": [
+//     {
+//       "src": "/(.*)",
+//       "dest": "dist/server.js"
+//     }
+//   ]
+// }

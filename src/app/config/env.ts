@@ -21,6 +21,7 @@ interface IEnvConfig {
     ADMIN_PASSWORD: string,
 
     FRONTEND_URL: string
+    FRONTEND_PRODUCTION_URL: string
 
     EMAIL_SENDER: {
         SMTP_USER: string;
@@ -51,6 +52,7 @@ const loadEnvVariables = (): IEnvConfig => {
         "ADMIN_PASSWORD",
 
         "FRONTEND_URL",
+        "FRONTEND_PRODUCTION_URL",
 
         "SMTP_PASS",
         "SMTP_PORT",
@@ -84,6 +86,7 @@ const loadEnvVariables = (): IEnvConfig => {
         ADMIN_PASSWORD: process.env.ADMIN_PASSWORD!,
 
         FRONTEND_URL: process.env.FRONTEND_URL!,
+        FRONTEND_PRODUCTION_URL: process.env.FRONTEND_PRODUCTION_URL!,
 
         // EMAIL SENDER
         EMAIL_SENDER: {
