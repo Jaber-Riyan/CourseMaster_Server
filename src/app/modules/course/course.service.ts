@@ -1,4 +1,6 @@
 import AppError from "../../errorHelpers/AppError";
+import { QueryBuilder } from "../../utils/QueryBuilder";
+import { courseSearchableFields } from "./course.constant";
 import { IBatches, ICourse, ISyllabus } from "./course.interface";
 import { Course } from "./course.model";
 import httpStatus from "http-status-codes"
@@ -7,6 +9,69 @@ const createCourse = async (payload: Partial<ICourse>) => {
     const result = await Course.create(payload)
 
     return result
+}
+
+const getSingleCourse = async (courseId: string) => {
+    const course = await Course.findById(courseId)
+
+    if (!course) {
+        throw new AppError(httpStatus.BAD_REQUEST, "Course Not Found")
+    }
+
+    return course
+}
+
+const getPublicCourses = async (query: Record<string, string>) => {
+    const queryBuilder = new QueryBuilder(Course.find(), query)
+
+    const users = queryBuilder
+        .search(courseSearchableFields)
+        .filter()
+        .sort()
+        .fields()
+        .paginate()
+
+    const [data, meta] = await Promise.all([
+        queryBuilder.build(),
+        queryBuilder.getMeta()
+    ]);
+
+    const availableCourses = await Course.aggregate([
+        {
+            $addFields: {
+                upcomingBatches: {
+                    $filter: {
+                        input: "$batches",
+                        as: "batch",
+                        cond: {
+                            $gt: ["$$batch.startDate", new Date()]
+                        }
+                    }
+                }
+            }
+        },
+        {
+            $match: {
+                "upcomingBatches.0": { $exists: true }
+            }
+        },
+        // {
+        //     $project: {
+        //         title: 1,
+        //         description: 1,
+        //         upcomingBatches: {
+        //             name: 1,
+        //             startDate: 1
+        //         }
+        //     }
+        // }
+    ]);
+
+    return {
+        data,
+        meta,
+        availableCourses
+    }
 }
 
 const updateCourse = async (courseId: string, payload: Partial<ICourse>) => {
@@ -98,5 +163,7 @@ export const CourseServices = {
     createCourse,
     updateCourse,
     addModule,
-    addBatch
+    addBatch,
+    getSingleCourse,
+    getPublicCourses
 }

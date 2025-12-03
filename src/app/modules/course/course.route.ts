@@ -9,7 +9,13 @@ const router = Router()
 
 router.post("/create", validateRequest(createCourseSchema), checkAuth(Role.ADMIN), CourseControllers.createCourse)
 
+router.get("/:courseId", CourseControllers.getSingleCourse)
+
+router.get("/public/courses", CourseControllers.getPublicCourses)
+
 router.patch("/update/:courseId", validateRequest(updateCourseSchema), checkAuth(Role.ADMIN), CourseControllers.updateCourse)
+
+router.delete("/:courseId", checkAuth(Role.ADMIN), CourseControllers.deleteCourse)
 
 router.patch("/add-module/:courseId", validateRequest(addCourseModule), checkAuth(Role.ADMIN), CourseControllers.addModule)
 
