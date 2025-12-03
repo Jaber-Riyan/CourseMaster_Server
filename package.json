@@ -1,10 +1,9 @@
 {
   "name": "server",
   "main": "dist/server.js",
-  "type": "module",
   "private": true,
   "scripts": {
-    "start": "node ./dist/server.js",
+    "start": "node dist/server.js",
     "dev": "npx tsx watch src/server.ts",
     "build": "tsc",
     "lint": "npx eslint ./src",

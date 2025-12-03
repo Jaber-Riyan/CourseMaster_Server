@@ -21,12 +21,14 @@ const startServer = async () => {
     }
 }
 
-(
-    async () => {
-        startServer()
-        seedAdmin()
-    }
-)()
+// (
+//     async () => {
+//         startServer()
+//         seedAdmin()
+//     }
+// )()
+startServer()
+seedAdmin()
 
 process.on("SIGTERM", () => {
     console.log("Signal Termination received....Server shutting down");
