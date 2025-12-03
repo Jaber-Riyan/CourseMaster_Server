@@ -7,31 +7,33 @@ export enum Role {
 
 export interface IEnrolledCourses {
     courseId: Types.ObjectId,
+    enrollmentId: Types.ObjectId
     batch: string
+}
+
+export interface IUserModule {
+    moduleId: number,
+    lessons:
+    {
+        lessonId: number,
+        complete: boolean,
+        completedAt?: Date | null
+    }[]
+    ,
+    quiz: {
+        attempted: boolean,
+        score: number
+    },
+    assignment: {
+        submitted: boolean,
+        grade: number
+    }
 }
 
 export interface IProgress {
     courseId: Types.ObjectId,
     batch: string,
-    modules:
-    {
-        moduleId: number,
-        lessons: [
-            {
-                lessonId: string,
-                complete: boolean,
-                completedAt: Date
-            }
-        ],
-        quiz: {
-            attempted: boolean,
-            score: number
-        },
-        assignment: {
-            submitted: boolean,
-            grade: number
-        }
-    }[]
+    modules: IUserModule[]
     ,
     overallPercentage: number
 }

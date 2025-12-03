@@ -1,9 +1,12 @@
+import { Types } from "mongoose";
 import AppError from "../../errorHelpers/AppError";
 import { QueryBuilder } from "../../utils/QueryBuilder";
+import { User } from "../user/user.model";
 import { courseSearchableFields } from "./course.constant";
 import { IBatches, ICourse, ISyllabus } from "./course.interface";
 import { Course } from "./course.model";
 import httpStatus from "http-status-codes"
+import { IUser, IUserModule } from "../user/user.interface";
 
 const createCourse = async (payload: Partial<ICourse>) => {
     const result = await Course.create(payload)
@@ -90,32 +93,78 @@ const updateCourse = async (courseId: string, payload: Partial<ICourse>) => {
 }
 
 const addModule = async (courseId: string, payload: Partial<ISyllabus>) => {
-    const course = await Course.findById(courseId)
+    const session = await Course.startSession()
+    session.startTransaction()
 
-    if (!course) {
-        throw new AppError(httpStatus.BAD_REQUEST, "Course Not Found")
-    }
+    try {
+        const course = await Course.findById(courseId)
 
-    const moduleNumber = course.syllabus.length + 1
-
-    const newModule: ISyllabus = {
-        moduleNumber,
-        title: payload.title ?? "",
-        content: payload.content ?? [],
-        quiz: payload.quiz ?? {
-            questions: [],
-        },
-        assignment: payload.assignment ?? {
-            requirement: "",
-            message: "",
+        if (!course) {
+            throw new AppError(httpStatus.BAD_REQUEST, "Course Not Found")
         }
+
+        const moduleNumber = course.syllabus.length + 1
+
+        const newModule: ISyllabus = {
+            moduleNumber,
+            title: payload.title ?? "",
+            content: payload.content ?? [],
+            quiz: payload.quiz ?? {
+                questions: [],
+            },
+            assignment: payload.assignment ?? {
+                requirement: "",
+                message: "",
+            }
+        }
+
+        course.syllabus.push(newModule)
+
+        await course.save({ session })
+
+        // Added New Module Where Users Bought This Course
+        const users = await User.find({}).session(session);
+
+        const usersInThisCourse = users.filter(user =>
+            user.enrolledCourses?.some(c =>
+                new Types.ObjectId(c.courseId).equals(courseId)
+            )
+        );
+
+        const module: IUserModule = {
+            moduleId: moduleNumber,
+            lessons: payload.content?.map((lesson, index) => ({
+                lessonId: index + 1,
+                complete: false,
+                completedAt: null
+            })) ?? [],
+            quiz: { attempted: false, score: 0 },
+            assignment: { submitted: false, grade: 0 }
+        };
+
+        for (const user of usersInThisCourse) {
+            const progress = user.progress?.find((p) =>
+                new Types.ObjectId(p.courseId).equals(courseId)
+            );
+
+            if (!progress) {
+                throw new AppError(httpStatus.NOT_FOUND, "Progress not found");
+            }
+
+            progress.modules.push(module);
+            await user.save({ session });
+        }
+
+        // Transaction Commit and End the Session
+        await session.commitTransaction() // Transaction
+        session.endSession()
+
+        return course
+    } catch (error) {
+        await session.abortTransaction() // Rollback
+        session.endSession()
+        throw error
     }
-
-    course.syllabus.push(newModule)
-
-    await course.save()
-
-    return course
 }
 
 const addBatch = async (courseId: string, payload: Partial<IBatches>) => {

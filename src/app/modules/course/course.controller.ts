@@ -4,6 +4,7 @@ import { sendResponse } from "../../utils/sendResponse";
 import httpStatus from "http-status-codes"
 import { CourseServices } from "./course.service";
 import { Course } from "./course.model";
+import AppError from "../../errorHelpers/AppError";
 
 const createCourse = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const result = await CourseServices.createCourse(req.body)
@@ -54,6 +55,13 @@ const updateCourse = catchAsync(async (req: Request, res: Response, next: NextFu
 
 const deleteCourse = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const courseId = req.params.courseId
+
+    const isExists = await Course.findById(courseId)
+
+    if(!isExists){
+        throw new AppError(httpStatus.BAD_REQUEST, "Course Not Found")
+    }
+
     const result = await Course.findByIdAndDelete(courseId)
 
     sendResponse(res, {

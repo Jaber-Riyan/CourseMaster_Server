@@ -2,10 +2,16 @@ import { Router } from "express";
 import { UserRoutes } from "../modules/user/user.route";
 import { AuthRoutes } from "../modules/auth/auth.route";
 import { CourseRoutes } from "../modules/course/course.route";
+import { EnrollmentRoutes } from "../modules/enrollment/enrollment.route";
 
 export const router = Router()
 
-const moduleRoutes = [
+export interface IModuleRoutes {
+    path: string
+    route: Router
+}
+
+const moduleRoutes: IModuleRoutes[] = [
     {
         path: "/users",
         route: UserRoutes
@@ -18,6 +24,10 @@ const moduleRoutes = [
         path: "/courses",
         route: CourseRoutes
     },
+    {
+        path: "/enrollment",
+        route: EnrollmentRoutes
+    }
 ]
 
 moduleRoutes.forEach(route => {

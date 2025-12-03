@@ -4,6 +4,7 @@ import { Role, type IEnrolledCourses, type IProgress, type IUser } from "./user.
 const enrolledCoursesSchema = new Schema<IEnrolledCourses>(
     {
         courseId: { type: Schema.Types.ObjectId, ref: "Course", required: true },
+        enrollmentId: { type: Schema.Types.ObjectId, ref: "Enrollment", required: true },
         batch: { type: String, required: true }
     },
     { _id: false, timestamps: true, versionKey: false }
@@ -17,7 +18,7 @@ const progressSchema = new Schema<IProgress>({
             moduleId: { type: Number, required: true },
             lessons: [
                 {
-                    lessonId: { type: String },
+                    lessonId: { type: Number },
                     complete: { type: Boolean, default: false },
                     completedAt: { type: Date }
                 }

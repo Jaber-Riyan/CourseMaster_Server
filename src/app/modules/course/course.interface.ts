@@ -1,3 +1,5 @@
+import { Types } from "mongoose"
+
 export interface ISyllabusContent {
     title: string
     videoUrl: string
@@ -33,6 +35,7 @@ export interface IBatches {
 }
 
 export interface ICourse {
+    _id: Types.ObjectId
     title: string
     description: string
     instructor: string
