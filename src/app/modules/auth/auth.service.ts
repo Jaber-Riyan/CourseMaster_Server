@@ -3,11 +3,13 @@ import AppError from "../../errorHelpers/AppError";
 import type { IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
 import httpStatus from "http-status-codes"
-import { createUserTokens } from "../../utils/userTokes";
+import { createNewAccessTokenWithRefreshToken, createUserTokens } from "../../utils/userTokes";
 import { setAuthCookie } from "../../utils/setCookie";
 import type { Response } from "express";
+import { envVars } from "../../config/env";
+import { JwtPayload } from "jsonwebtoken";
 
-const credentialsLogin = async (payload: Partial<IUser>, res:Response) => {
+const credentialsLogin = async (payload: Partial<IUser>, res: Response) => {
     const { email, password } = payload
 
     const isUserExist = await User.findOne({ email })
@@ -33,6 +35,31 @@ const credentialsLogin = async (payload: Partial<IUser>, res:Response) => {
         rest
     }
 }
+
+const getNewAccessToken = async (refreshToken: string) => {
+    const newAccessToken = await createNewAccessTokenWithRefreshToken(refreshToken)
+
+    return {
+        accessToken: newAccessToken.accessToken
+    }
+}
+
+const changePassword = async (oldPassword: string, newPassword: string, decodedToken: JwtPayload) => {
+    const user = await User.findById(decodedToken.userId)
+
+    const isPasswordMatched = await bcrypt.compare(oldPassword, user?.password as string)
+
+    if (!isPasswordMatched) {
+        throw new AppError(httpStatus.UNAUTHORIZED, "Old Password Does't Match")
+    }
+
+    user!.password = await bcrypt.hash(newPassword, Number(envVars.BCRYPT_SALT_ROUND))
+
+    user?.save()
+}
+
 export const AuthServices = {
-    credentialsLogin
+    credentialsLogin,
+    getNewAccessToken,
+    changePassword
 }
