@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" style="margin:0; padding:0;">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Welcome Email</title>
+
+  <style>
+    /* Reset */
+    body, p, h1, h2, h3, h4, h5, h6 {
+      margin: 0;
+      padding: 0;
+      font-family: 'Geist Sans', sans-serif;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f6f7f9;
+      padding: 30px 0;
+    }
+
+    .container {
+      width: 95%;
+      max-width: 650px;
+      margin: auto;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+      border: 1px solid #e5e7eb;
+    }
+
+    .header {
+      background: #1a1a1a;
+      padding: 25px 20px;
+      text-align: center;
+    }
+
+    .header h1 {
+      color: #ffffff;
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .content {
+      padding: 30px 25px;
+      font-size: 16px;
+      line-height: 1.7;
+      color: #333;
+    }
+
+    .content p {
+      margin: 12px 0;
+    }
+
+    .btn {
+      display: inline-block;
+      background: #3b82f6;
+      color: white !important;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      margin: 25px 0;
+      transition: .25s;
+    }
+
+    .btn:hover {
+      background: #2563eb;
+    }
+
+    .footer {
+      background: #f3f4f6;
+      padding: 18px 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #6b7280;
+    }
+
+    @media (max-width: 500px) {
+      .header h1 {
+        font-size: 22px;
+      }
+
+      .content {
+        padding: 20px 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- HEADER -->
+    <div class="header">
+      <h1>Welcome to CourseMaster 🎉</h1>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+      <h2>Hello <%= name %>,</h2>
+
+      <p>
+        We’re excited to have you on board! 🚀  
+        CourseMaster is a smart learning platform designed to help you learn faster, stay consistent, and level up your programming skills every single day.
+      </p>
+
+      <p>
+        You can now explore courses, track your progress, and join our learning community.
+      </p>
+
+      <p style="margin-top: 18px;">
+        Click the button below to get started:
+      </p>
+
+      <a href="<%= url %>" class="btn">Get Started</a>
+
+      <p>
+        If you have any questions, feel free to reply to this email — we're always happy to help.  
+        Let's build something amazing ✨
+      </p>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      &copy; <%= new Date().getFullYear() %> CourseMaster. All rights reserved.
+    </div>
+  </div>
+</body>
+
+</html>

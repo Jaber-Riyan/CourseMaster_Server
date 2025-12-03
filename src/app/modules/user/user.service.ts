@@ -6,6 +6,8 @@ import { userSearchableFields } from "./user.constant";
 import { Role, type IUser } from "./user.interface";
 import { User } from "./user.model";
 import httpStatus from "http-status-codes"
+import { sendEmail } from "../../utils/sendEmail";
+import { envVars } from "../../config/env";
 
 const createUser = async (payload: Partial<IUser>) => {
     const { email, password, ...rest } = payload
@@ -22,6 +24,16 @@ const createUser = async (payload: Partial<IUser>) => {
         email,
         password: hashedPassword,
         ...rest
+    })
+
+    await sendEmail({
+        to: "jaberriyan357@gmail.com",
+        subject: `Welcome To Course Master - ${user?.name}`,
+        templateName: "registrationEmail",
+        templateData: {
+            name: user?.name,
+            url:`${envVars.FRONTEND_PRODUCTION_URL}/${user.role}/dashboard`
+        }
     })
 
     return user
