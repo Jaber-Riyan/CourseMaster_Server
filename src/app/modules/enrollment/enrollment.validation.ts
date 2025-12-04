@@ -8,6 +8,7 @@ const assignmentSchema = z.object({
     moduleId: z.number(),
     answer: z.string(),
     mark: z.number(),
+    batch:z.string(),
     reviewed: z.boolean()
 });
 

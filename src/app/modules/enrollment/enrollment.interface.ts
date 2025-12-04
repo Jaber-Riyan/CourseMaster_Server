@@ -4,6 +4,7 @@ export interface IAssignment {
     moduleId: number,
     answer: string,
     mark: number,
+    batch: string
     reviewed: boolean
 }
 

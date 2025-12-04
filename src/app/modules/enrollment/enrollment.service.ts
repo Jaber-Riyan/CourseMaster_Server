@@ -5,7 +5,6 @@ import AppError from "../../errorHelpers/AppError";
 import httpStatus from "http-status-codes"
 import { User } from "../user/user.model";
 import { Types } from "mongoose";
-import { createProgressFromSyllabus } from "./enrollment.utils";
 import { Course } from "../course/course.model";
 import { IProgress, IUserModule } from "../user/user.interface";
 
@@ -87,6 +86,102 @@ const makeEnroll = async (user: JwtPayload, payload: Partial<IEnrollment>) => {
     }
 }
 
+const enrollMe = async (user: JwtPayload) => {
+    const enrollments = await Enrollment.find({ studentId: user.userId }).populate("studentId").populate("courseId")
+
+    return enrollments
+}
+
+const enrollProgress = async (enrollmentId: string) => {
+    const enrollment = await Enrollment.findById(enrollmentId)
+
+    const enrolledUser = await User.findById(enrollment?.studentId)
+
+    if (!enrolledUser) {
+        throw new AppError(httpStatus.NOT_FOUND, "Student Not Found")
+    }
+
+    const totalLessonsPerCourse = enrolledUser.progress?.map((progress) => {
+        const lessonCount = progress.modules.reduce((moduleAcc, module) => {
+            const totalLessons = module.lessons.filter(l => l.lessonId).length
+            if (module.quiz) moduleAcc++
+            if (module.assignment) moduleAcc++
+            return moduleAcc + totalLessons
+        }, 0)
+
+        return {
+            courseId: progress.courseId,
+            batch: progress.batch,
+            totalLessons: lessonCount
+        }
+    })
+
+
+    const incompleteTotalLessonsPerCourse = enrolledUser.progress?.map((progress) => {
+
+        const lessonCount = progress.modules.reduce((moduleAcc, module) => {
+            const incompleteLessons = module.lessons.filter(l => !l.complete).length
+            if (!module.quiz.attempted) moduleAcc++
+            if (!module.assignment.submitted) moduleAcc++
+            return moduleAcc + incompleteLessons
+        }, 0)
+
+        return {
+            courseId: progress.courseId,
+            batch: progress.batch,
+            totalLessons: lessonCount,
+        }
+    })
+
+    const completeTotalLessonsPerCourse = enrolledUser.progress?.map((progress) => {
+
+        const lessonCount = progress.modules.reduce((moduleAcc, module) => {
+            const completeLessons = module.lessons.filter(l => l.complete).length
+            if (module.quiz.attempted) moduleAcc++
+            if (module.assignment.submitted) moduleAcc++
+            return moduleAcc + completeLessons
+        }, 0)
+
+        return {
+            courseId: progress.courseId,
+            batch: progress.batch,
+            totalLessons: lessonCount
+        }
+    })
+
+    const completedPercentagePerCourse = completeTotalLessonsPerCourse?.map((course, index) => {
+        if (!totalLessonsPerCourse) {
+            throw new AppError(httpStatus.NOT_FOUND, "Total Lessons Per Course Not Found");
+        }
+
+        if (course.courseId === totalLessonsPerCourse[index].courseId) {
+
+            return {
+                courseId: course.courseId,
+                percentage:
+                    (course.totalLessons / totalLessonsPerCourse[index].totalLessons) * 100,
+                batch: course.batch,
+            };
+        }
+    });
+
+
+
+    return {
+        totalLessonsPerCourse,
+        incompleteTotalLessonsPerCourse,
+        completeTotalLessonsPerCourse,
+        completedPercentagePerCourse
+    }
+}
+
+const markProgress = async (courseId: string, moduleId: number, lessonId: number) => {
+
+}
+
 export const EnrollmentServices = {
-    makeEnroll
+    makeEnroll,
+    enrollMe,
+    enrollProgress,
+    markProgress
 }

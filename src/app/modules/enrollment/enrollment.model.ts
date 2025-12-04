@@ -15,6 +15,9 @@ const assignmentSchema = new Schema<IAssignment>(
             type: Number,
             default: 0,
         },
+        batch: {
+            type: String
+        },
         reviewed: {
             type: Boolean,
             default: false,
