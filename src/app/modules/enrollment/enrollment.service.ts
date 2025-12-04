@@ -95,6 +95,10 @@ const enrollMe = async (user: JwtPayload) => {
 const enrollProgress = async (enrollmentId: string) => {
     const enrollment = await Enrollment.findById(enrollmentId)
 
+    if (!enrollment) {
+        throw new AppError(httpStatus.NOT_FOUND, "Enrollment Not Found")
+    }
+
     const enrolledUser = await User.findById(enrollment?.studentId)
 
     if (!enrolledUser) {
@@ -159,29 +163,103 @@ const enrollProgress = async (enrollmentId: string) => {
             return {
                 courseId: course.courseId,
                 percentage:
-                    (course.totalLessons / totalLessonsPerCourse[index].totalLessons) * 100,
+                    Math.round((course.totalLessons / totalLessonsPerCourse[index].totalLessons) * 100),
                 batch: course.batch,
             };
         }
     });
 
+    if (!completedPercentagePerCourse) {
+        throw new AppError(httpStatus.NOT_FOUND, "Completed Percentage Per Course Not Found");
+    }
 
+    for (const progress of enrolledUser.progress ?? []) {
+
+        const match = completedPercentagePerCourse.find(
+            (c: any) =>
+                c.courseId.equals(progress.courseId) &&
+                c.batch === progress.batch
+        );
+
+        if (match) {
+            progress.overallPercentage = match.percentage;
+        }
+    }
+
+    await enrolledUser.save();
+
+    const totalPercentageProgress = enrolledUser.progress?.reduce((sum, p) => {
+        return sum + (p.overallPercentage ?? 0);
+    }, 0);
+
+    if (!enrolledUser.progress) throw new AppError(httpStatus.NOT_FOUND, "Enrolled User Progress Not Found")
+
+    const enrollmentProgress = Math.round(Number(totalPercentageProgress) && Number(totalPercentageProgress) / enrolledUser.progress?.length)
+
+    enrollment.progress = enrollmentProgress ?? 0
+
+    await enrollment.save()
 
     return {
         totalLessonsPerCourse,
         incompleteTotalLessonsPerCourse,
         completeTotalLessonsPerCourse,
-        completedPercentagePerCourse
+        completedPercentagePerCourse,
+        enrollmentProgress
     }
 }
 
-const markProgress = async (courseId: string, moduleId: number, lessonId: number) => {
+const markProgress = async (courseId: string, batch: string, moduleId: number, lessonId: number, userInfo: JwtPayload) => {
+    const user = await User.findById(userInfo.userId);
 
+    if (!user) throw new AppError(httpStatus.NOT_FOUND, "User not found");
+
+    if (!user.progress || user.progress.length === 0) {
+        throw new AppError(httpStatus.NOT_FOUND, "User has no progress data");
+    }
+
+    const courseProgress = user.progress.find(
+        (p) =>
+            p.courseId.toString() === courseId.toString() &&
+            p.batch === batch
+    );
+
+    if (!courseProgress) {
+        throw new AppError(httpStatus.NOT_FOUND, "Course progress not found");
+    }
+
+    const moduleProgress = courseProgress.modules.find(
+        (m) => m.moduleId === moduleId
+    );
+
+    if (!moduleProgress) {
+        throw new AppError(httpStatus.NOT_FOUND, "Module not found");
+    }
+
+    const lessonProgress = moduleProgress.lessons.find(
+        (l) => l.lessonId === lessonId
+    );
+
+    if (!lessonProgress) {
+        throw new AppError(httpStatus.NOT_FOUND, "Lesson not found");
+    }
+
+    lessonProgress.complete = true;
+    lessonProgress.completedAt = new Date();
+
+    await user.save();
+
+    return user.progress
+}
+
+const getEnrollments = async (courseId: string) => {
+    return await Enrollment.find({ courseId: courseId }).populate("studentId").populate("courseId")
 }
 
 export const EnrollmentServices = {
     makeEnroll,
     enrollMe,
     enrollProgress,
-    markProgress
+    markProgress,
+    getEnrollments
 }

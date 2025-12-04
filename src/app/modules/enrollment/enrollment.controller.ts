@@ -42,13 +42,26 @@ const enrollProgress = catchAsync(async (req: Request, res: Response, next: Next
 })
 
 const markProgress = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { courseId, moduleId, lessonId } = req.params
-    const result = await EnrollmentServices.markProgress(courseId, Number(moduleId), Number(lessonId))
+    const { courseId, batch, moduleId, lessonId } = req.params
+    const user = req.user
+    const result = await EnrollmentServices.markProgress(courseId, batch, Number(moduleId), Number(lessonId), user)
 
     sendResponse(res, {
         success: true,
         statusCode: httpStatus.OK,
-        message: "Progress Update Successfully",
+        message: "Lesson Mark as Complete",
+        data: result
+    })
+})
+
+const getEnrollments = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const courseId = req.params.courseId
+    const result = await EnrollmentServices.getEnrollments(courseId)
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Enrollments Retrieved Successfully",
         data: result
     })
 })
@@ -57,5 +70,6 @@ export const EnrollmentControllers = {
     makeEnroll,
     enrollMe,
     enrollProgress,
-    markProgress
+    markProgress,
+    getEnrollments
 }
