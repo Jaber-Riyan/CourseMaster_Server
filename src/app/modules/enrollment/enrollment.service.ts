@@ -209,7 +209,7 @@ const enrollProgress = async (enrollmentId: string) => {
     }
 }
 
-const markProgress = async (courseId: string, batch: string, moduleId: number, lessonId: number, userInfo: JwtPayload) => {
+const markProgress = async (courseId: string, batch: string, moduleId: number, lessonId: number, enrollmentId: string, userInfo: JwtPayload) => {
     const user = await User.findById(userInfo.userId);
 
     if (!user) throw new AppError(httpStatus.NOT_FOUND, "User not found");
@@ -244,10 +244,14 @@ const markProgress = async (courseId: string, batch: string, moduleId: number, l
         throw new AppError(httpStatus.NOT_FOUND, "Lesson not found");
     }
 
+    if (lessonProgress.complete && lessonProgress.completedAt) throw new AppError(httpStatus.CONFLICT, "Lesson Already Marked!!")
+
     lessonProgress.complete = true;
     lessonProgress.completedAt = new Date();
 
     await user.save();
+
+    await enrollProgress(enrollmentId)
 
     return user.progress
 }

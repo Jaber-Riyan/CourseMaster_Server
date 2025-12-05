@@ -42,9 +42,9 @@ const enrollProgress = catchAsync(async (req: Request, res: Response, next: Next
 })
 
 const markProgress = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { courseId, batch, moduleId, lessonId } = req.params
+    const { courseId, batch, moduleId, lessonId, enrollmentId } = req.params
     const user = req.user
-    const result = await EnrollmentServices.markProgress(courseId, batch, Number(moduleId), Number(lessonId), user)
+    const result = await EnrollmentServices.markProgress(courseId, batch, Number(moduleId), Number(lessonId), enrollmentId, user)
 
     sendResponse(res, {
         success: true,

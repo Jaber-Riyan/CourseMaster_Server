@@ -25,19 +25,6 @@ const getSingleCourse = async (courseId: string) => {
 }
 
 const getPublicCourses = async (query: Record<string, string>) => {
-    const queryBuilder = new QueryBuilder(Course.find(), query)
-
-    const users = queryBuilder
-        .search(courseSearchableFields)
-        .filter()
-        .sort()
-        .fields()
-        .paginate()
-
-    const [data, meta] = await Promise.all([
-        queryBuilder.build(),
-        queryBuilder.getMeta()
-    ]);
 
     const availableCourses = await Course.aggregate([
         {
@@ -70,10 +57,57 @@ const getPublicCourses = async (query: Record<string, string>) => {
         // }
     ]);
 
+    const availableCoursesWithQuery = await Course.aggregate([
+        {
+            $addFields: {
+                upcomingBatches: {
+                    $filter: {
+                        input: "$batches",
+                        as: "batch",
+                        cond: {
+                            $gt: ["$$batch.startDate", new Date()]
+                        }
+                    }
+                }
+            }
+        },
+        {
+            $match: {
+                "upcomingBatches.0": { $exists: true }
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                "upcomingBatches": 1
+            }
+        }
+    ]);
+
+    const ids = availableCoursesWithQuery.map(item => item._id);
+
+    const queryBuilder = new QueryBuilder(
+        Course.find({ _id: { $in: ids } }),
+        query
+    );
+
+    const upcoming = queryBuilder
+        .search(courseSearchableFields)
+        .filter()
+        .sort()
+        .fields()
+        .paginate();
+
+    const [availableCoursesFromQuery, availableMeta] = await Promise.all([
+        queryBuilder.build(),
+        queryBuilder.getMeta()
+    ]);
+
     return {
-        data,
-        meta,
-        availableCourses
+        availableCoursesFromQuery,
+        availableMeta,
+        availableCourses,
+        anotherAvailableCourseWithQuery: availableCoursesWithQuery
     }
 }
 

@@ -13,7 +13,7 @@ router.get("/me", checkAuth(...Object.values(Role)), EnrollmentControllers.enrol
 
 router.patch("/:enrollmentId/progress", checkAuth(...Object.values(Role)), EnrollmentControllers.enrollProgress)
 
-router.patch("/mark/progress/:courseId/:batch/:moduleId/:lessonId", checkAuth(...Object.values(Role)), EnrollmentControllers.markProgress)
+router.patch("/mark/progress/:courseId/:batch/:moduleId/:lessonId/:enrollmentId", checkAuth(...Object.values(Role)), EnrollmentControllers.markProgress)
 
 router.get("/admin/enrollments/:courseId", checkAuth(Role.ADMIN), EnrollmentControllers.getEnrollments)
 

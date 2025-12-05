@@ -27,12 +27,12 @@ const createUser = async (payload: Partial<IUser>) => {
     })
 
     await sendEmail({
-        to: "jaberriyan357@gmail.com",
+        to: `${email}`,
         subject: `Welcome To Course Master - ${user?.name}`,
         templateName: "registrationEmail",
         templateData: {
             name: user?.name,
-            url:`${envVars.FRONTEND_PRODUCTION_URL}/${user.role}/dashboard`
+            url: `${envVars.FRONTEND_PRODUCTION_URL}/${user.role}/dashboard`
         }
     })
 
