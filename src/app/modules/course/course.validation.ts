@@ -48,7 +48,7 @@ export const createCourseSchema = z.object({
   category: z.array(z.string().min(1)),
   tags: z.array(z.string()).optional(),
 
-  syllabus: z.array(syllabusSchema),
+  syllabus: z.array(syllabusSchema).optional(),
   batches: z.array(batchSchema).optional(),
 });
 

@@ -256,8 +256,69 @@ const markProgress = async (courseId: string, batch: string, moduleId: number, l
     return user.progress
 }
 
-const getEnrollments = async (courseId: string) => {
-    return await Enrollment.find({ courseId: courseId }).populate("studentId").populate("courseId")
+const getEnrollments = async () => {
+    return await Enrollment.find({}).populate("studentId").populate("courseId")
+}
+
+const submitAssignment = async (enrollmentId: string, moduleId: number) => {
+    const session = await Enrollment.startSession()
+    session.startTransaction()
+    try {
+        const enrollment = await Enrollment.findById(enrollmentId)
+        const courseId = enrollment?.courseId
+        const student = await User.findById(enrollment?.studentId)
+
+        // Student Progress Update
+        // ---- 1. Student Check ----
+        if (!student) {
+            throw new AppError(httpStatus.NOT_FOUND, "User Not Found");
+        }
+
+        // ---- 2. Find Course Progress ----
+        const getStudentProgress = student.progress?.find(
+            (progress) =>
+                progress.courseId.toString() === courseId?.toString() &&
+                progress.batch === enrollment?.batch
+        );
+
+        if (!getStudentProgress) {
+            throw new AppError(
+                httpStatus.NOT_FOUND,
+                "User Course Progress Not Found"
+            );
+        }
+
+        // ---- 3. Find Module ----
+        const getModule = getStudentProgress.modules.find(
+            (module) => module.moduleId === moduleId
+        );
+
+        if (!getModule) {
+            throw new AppError(
+                httpStatus.NOT_FOUND,
+                "User Module Not Found"
+            );
+        }
+
+        // ---- 4. Update Assignment Status ----
+        getModule.assignment.submitted = true;
+
+        // ---- 5. Save Document ----
+        await student.save({ session });
+
+        // Push Assignment Data Into Enrollment For Admin Review
+        
+
+        // Transaction Commit and End the Session
+        await session.commitTransaction() // Transaction
+        session.endSession()
+        return enrollment
+    }
+    catch (error) {
+        await session.abortTransaction() // Rollback
+        session.endSession()
+        throw error
+    }
 }
 
 export const EnrollmentServices = {
@@ -265,5 +326,6 @@ export const EnrollmentServices = {
     enrollMe,
     enrollProgress,
     markProgress,
-    getEnrollments
+    getEnrollments,
+    submitAssignment
 }
