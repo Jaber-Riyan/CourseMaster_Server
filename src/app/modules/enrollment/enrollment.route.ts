@@ -15,6 +15,8 @@ router.patch("/:enrollmentId/progress", checkAuth(...Object.values(Role)), Enrol
 
 router.patch("/mark/progress/:courseId/:batch/:moduleId/:lessonId/:enrollmentId", checkAuth(...Object.values(Role)), EnrollmentControllers.markProgress)
 
-router.get("/admin/enrollments/:courseId", checkAuth(Role.ADMIN), EnrollmentControllers.getEnrollments)
+router.get("/admin/enrollments", checkAuth(Role.ADMIN), EnrollmentControllers.getEnrollments)
+
+router.post("/submit/assignment/:enrollmentId/:moduleId", checkAuth(...Object.values(Role)), EnrollmentControllers.submitAssignment)
 
 export const EnrollmentRoutes = router
