@@ -13,7 +13,11 @@ router.get("/:courseId", CourseControllers.getSingleCourse)
 
 router.get("/public/courses", CourseControllers.getPublicCourses)
 
+router.get("/admin/all-courses", checkAuth(Role.ADMIN), CourseControllers.getAllAdminCourses)
+
 router.patch("/update/:courseId", validateRequest(updateCourseSchema), checkAuth(Role.ADMIN), CourseControllers.updateCourse)
+
+router.get("/get-assignment/:courseId/:moduleId", checkAuth(...Object.values(Role)),CourseControllers.getAssignment)
 
 router.delete("/:courseId", checkAuth(Role.ADMIN), CourseControllers.deleteCourse)
 

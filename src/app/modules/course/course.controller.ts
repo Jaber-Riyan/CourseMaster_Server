@@ -41,6 +41,17 @@ const getPublicCourses = catchAsync(async (req: Request, res: Response, next: Ne
     })
 })
 
+const getAllAdminCourses = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const result = await CourseServices.getAllAdminCourses()
+
+    sendResponse(res, {
+        statusCode: httpStatus.CREATED,
+        message: "Course Retrieved Successfully",
+        success: true,
+        data: result
+    })
+})
+
 const updateCourse = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const courseId: string = req.params.courseId
     const result = await CourseServices.updateCourse(courseId, req.body)
@@ -53,12 +64,24 @@ const updateCourse = catchAsync(async (req: Request, res: Response, next: NextFu
     })
 })
 
+const getAssignment = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const { courseId, moduleId } = req.params
+    const result = await CourseServices.getAssignment(courseId, Number(moduleId))
+
+    sendResponse(res, {
+        statusCode: httpStatus.CREATED,
+        message: "Assignment Retrieved Successfully",
+        success: true,
+        data: result
+    })
+})
+
 const deleteCourse = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const courseId = req.params.courseId
 
     const isExists = await Course.findById(courseId)
 
-    if(!isExists){
+    if (!isExists) {
         throw new AppError(httpStatus.BAD_REQUEST, "Course Not Found")
     }
 
@@ -101,7 +124,9 @@ export const CourseControllers = {
     updateCourse,
     addModule,
     addBatch,
+    getAssignment,
     getSingleCourse,
     getPublicCourses,
-    deleteCourse
+    deleteCourse,
+    getAllAdminCourses
 }
