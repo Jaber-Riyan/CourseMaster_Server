@@ -9,6 +9,11 @@ import httpStatus from "http-status-codes"
 import { IUser, IUserModule } from "../user/user.interface";
 
 const createCourse = async (payload: Partial<ICourse>) => {
+    const exist = await Course.findOne({ title: payload.title })
+    if (exist) {
+        throw new AppError(httpStatus.BAD_REQUEST, "This Course With Title Already Exist!!")
+    }
+
     const result = await Course.create(payload)
 
     return result
@@ -111,6 +116,10 @@ const getPublicCourses = async (query: Record<string, string>) => {
     }
 }
 
+const getAllAdminCourses = async () => {
+    return await Course.find({})
+}
+
 const updateCourse = async (courseId: string, payload: Partial<ICourse>) => {
     const course = await Course.findById(courseId)
 
@@ -124,6 +133,20 @@ const updateCourse = async (courseId: string, payload: Partial<ICourse>) => {
     })
 
     return newUpdateCurse
+}
+
+const getAssignment = async (courseId: string, moduleId: number) => {
+    const course = await Course.findById(courseId)
+
+    if (!course) {
+        throw new AppError(httpStatus.BAD_REQUEST, "Course Not Found")
+    }
+
+    const assignment = course.syllabus.find((module) => module.moduleNumber === moduleId)?.assignment
+
+    return {
+        assignment
+    }
 }
 
 const addModule = async (courseId: string, payload: Partial<ISyllabus>) => {
@@ -248,5 +271,7 @@ export const CourseServices = {
     addModule,
     addBatch,
     getSingleCourse,
-    getPublicCourses
+    getPublicCourses,
+    getAllAdminCourses,
+    getAssignment
 }
